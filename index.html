@@ -6,9 +6,7 @@
   <title>Web PSP Player</title>
   <script src="coi-serviceworker.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       background: #0f0f13;
@@ -29,17 +27,7 @@
       max-width: 440px;
       width: 90%;
     }
-    #upload-box h2 {
-      margin-top: 0;
-    }
-    #upload-box p {
-      color: #a0a0b0;
-      font-size: 0.95rem;
-      margin-bottom: 1.5rem;
-    }
-    #rom-input {
-      display: none;
-    }
+    #rom-input { display: none; }
     .upload-btn {
       display: inline-block;
       padding: 0.75rem 1.5rem;
@@ -49,8 +37,10 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .upload-btn:hover {
-      background: #4338ca;
+    #status {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #a0a0b0;
     }
     #game-container {
       width: 960px;
@@ -65,9 +55,10 @@
 
   <div id="upload-box">
     <h2>PSP Browser Player</h2>
-    <p>Select a PSP game file (.iso, .cso, .pbp, or .zip) from your device to launch.</p>
+    <p>Select a PSP game file (.iso, .cso, .pbp, or .zip) from your device.</p>
     <label for="rom-input" class="upload-btn">Choose Game File</label>
     <input type="file" id="rom-input" accept=".iso,.cso,.zip,.pbp" />
+    <div id="status">Checking browser isolation...</div>
   </div>
 
   <div id="game-container">
@@ -75,12 +66,17 @@
   </div>
 
   <script>
+    const statusEl = document.getElementById("status");
     const input = document.getElementById("rom-input");
     const uploadBox = document.getElementById("upload-box");
     const gameContainer = document.getElementById("game-container");
 
+    statusEl.textContent = window.crossOriginIsolated
+      ? "Ready (Multi-threading active)"
+      : "Warning: Browser isolation inactive (single-thread fallback)";
+
     input.addEventListener("change", (event) => {
-      const file = event.target.files[0];
+      const file = event.target.files.item(0);
       if (!file) return;
 
       const blobUrl = URL.createObjectURL(file);
@@ -92,7 +88,7 @@
       window.EJS_core = "psp";
       window.EJS_gameName = file.name.replace(/\.[^/.]+$/, "");
       window.EJS_gameUrl = blobUrl;
-      window.EJS_threads = true;
+      window.EJS_threads = window.crossOriginIsolated === true;
       window.EJS_pathtodata = "https://emulatorjs.org";
 
       const script = document.createElement("script");
